@@ -20,6 +20,6 @@ spring:
 #      path: /swagger-ui.html
 
 # === MyBatis-Plus 配置 (如果不想看 SQL 日志，把 log-impl 那行删掉) ===
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印 SQL，调试神器
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印 SQL，调试神器

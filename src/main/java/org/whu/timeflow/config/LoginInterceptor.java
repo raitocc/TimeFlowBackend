@@ -13,7 +13,7 @@ import org.whu.timeflow.utils.UserContext;
 public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         // 1. 对于 OPTIONS 请求直接放行 (解决跨域时的预检请求问题)
         if ("OPTIONS".equals(request.getMethod())) {
             return true;

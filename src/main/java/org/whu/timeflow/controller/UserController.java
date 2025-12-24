@@ -2,6 +2,8 @@ package org.whu.timeflow.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/user")
+@Tag(name = "用户", description = "用户账号相关接口")
 public class UserController {
 
     @Autowired
@@ -41,6 +44,14 @@ public class UserController {
     // ================= 业务接口 =================
 
     // 1. 注册
+    @Operation(
+            summary = "用户注册",
+            description = "参数：email(必填)、password(必填)、nickname(可选)",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "注册信息"
+            )
+    )
     @PostMapping("/register")
     public Result<String> register(@RequestBody UserDTO dto) {
         // 基础校验
@@ -62,10 +73,18 @@ public class UserController {
         user.setNickname(StringUtils.isBlank(dto.getNickname()) ? "流年用户" : dto.getNickname());
 
         userMapper.insert(user);
-        return Result.success("注册成功");
+        return Result.success("注册成功", "注册成功");
     }
 
     // 2. 登录
+    @Operation(
+            summary = "用户登录",
+            description = "参数：email(必填)、password(必填)",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "登录信息"
+            )
+    )
     @PostMapping("/login")
     public Result<Map<String, String>> login(@RequestBody UserDTO dto) {
         if (StringUtils.isBlank(dto.getEmail()) || StringUtils.isBlank(dto.getPassword())) {
@@ -95,10 +114,18 @@ public class UserController {
         map.put("id", user.getId());
         map.put("email", user.getEmail());
 
-        return Result.success(map);
+        return Result.success(map, "登陆成功");
     }
 
     // 3. 修改昵称
+    @Operation(
+            summary = "修改昵称",
+            description = "参数：nickname(必填)",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "昵称信息"
+            )
+    )
     @PostMapping("/update/nickname")
     public Result<String> updateNickname(@RequestBody UserDTO dto) {
         String userId = UserContext.getUserId();
@@ -115,10 +142,18 @@ public class UserController {
         update.setNickname(dto.getNickname());
 
         userMapper.updateById(update);
-        return Result.success("昵称修改成功");
+        return Result.success("昵称修改成功", "昵称修改成功");
     }
 
     // 4. 修改密码
+    @Operation(
+            summary = "修改密码",
+            description = "参数：oldPassword(必填)、newPassword(必填)",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "密码信息"
+            )
+    )
     @PostMapping("/update/password")
     public Result<String> updatePassword(@RequestBody UserDTO dto) {
         String userId = UserContext.getUserId();
@@ -146,6 +181,6 @@ public class UserController {
         updateUser.setPassword(encrypt(dto.getNewPassword()));
 
         userMapper.updateById(updateUser);
-        return Result.success("密码修改成功");
+        return Result.success("密码修改成功", "密码修改成功");
     }
 }
