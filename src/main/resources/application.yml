@@ -1,0 +1,25 @@
+server:
+  port: 8080 # 后端端口
+
+spring:
+  application:
+    name: timeflow # 应用名称
+
+  # === 数据库配置核心 ===
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/timeflow?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: 95515
+
+#  # === Swagger 配置 (SpringDoc) ===
+#  springdoc:
+#    api-docs:
+#      path: /v3/api-docs
+#    swagger-ui:
+#      path: /swagger-ui.html
+
+# === MyBatis-Plus 配置 (如果不想看 SQL 日志，把 log-impl 那行删掉) ===
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印 SQL，调试神器
