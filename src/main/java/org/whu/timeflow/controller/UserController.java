@@ -128,7 +128,29 @@ public class UserController {
         return Result.success(map, "登录成功");
     }
 
-    // 3. 修改昵称
+    // 3. 拉取用户信息
+    @Operation(
+            summary = "拉取用户信息",
+            description = "无参数，从 Token 中解析用户ID"
+    )
+    @GetMapping("/info")
+    public Result<Map<String, String>> info() {
+        String userId = UserContext.getUserId();
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            log.info("拉取用户信息 结果=失败 原因=用户不存在 用户ID={}", userId);
+            return Result.error("用户不存在");
+        }
+
+        Map<String, String> map = new HashMap<>();
+        map.put("id", user.getId());
+        map.put("email", user.getEmail());
+        map.put("nickname", user.getNickname());
+        log.info("拉取用户信息 结果=成功 用户ID={} 邮箱={} 昵称={}", user.getId(), user.getEmail(), user.getNickname());
+        return Result.success(map, "获取成功");
+    }
+
+    // 4. 修改昵称
     @Operation(
             summary = "修改昵称",
             description = "参数：nickname(必填)",
@@ -161,7 +183,7 @@ public class UserController {
         return Result.success("昵称修改成功", "昵称修改成功");
     }
 
-    // 4. 修改密码
+    // 5. 修改密码
     @Operation(
             summary = "修改密码",
             description = "参数：oldPassword(必填)、newPassword(必填)",
