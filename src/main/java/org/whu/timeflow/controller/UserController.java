@@ -112,7 +112,7 @@ public class UserController {
         String inputHash = encrypt(dto.getPassword());
         if (!user.getPassword().equals(inputHash)) {
             log.info("用户登录 结果=失败 原因=密码错误 用户ID={} 邮箱={}", user.getId(), user.getEmail());
-            return Result.error("密码错误"); // 生产环境通常提示“账号或密码错误”模糊具体原因，但作业可以具体点
+            return Result.error("密码错误");
         }
 
         // 生成 Token
