@@ -84,6 +84,8 @@ public class SyncController {
         successIds.put("success_todo_ids", todoIds);
         int todoSuccess = todoIds.size();
 
+        log.info("同步推送 结果=成功 用户ID={} 日记成功/总数={}/{} 账单成功/总数={}/{} 待办成功/总数={}/{}",
+                userId, diarySuccess, diaryTotal, billSuccess, billTotal, todoSuccess, todoTotal);
         return Result.success(successIds);
     }
 
@@ -95,6 +97,7 @@ public class SyncController {
         String userId = UserContext.getUserId();
         Long lastTime = req.getLastSyncTime();
         if (lastTime == null) lastTime = 0L;
+        log.info("同步拉取 开始 用户ID={} 上次同步时间={}", userId, lastTime);
 
         SyncDTO resp = new SyncDTO();
 
@@ -112,6 +115,11 @@ public class SyncController {
         resp.setTodos(todoService.list(new LambdaQueryWrapper<Todo>()
                 .eq(Todo::getUserId, userId)
                 .gt(Todo::getUpdateTime, lastTime)));
+
+        int diaryCount = resp.getDiaries() == null ? 0 : resp.getDiaries().size();
+        int billCount = resp.getBills() == null ? 0 : resp.getBills().size();
+        int todoCount = resp.getTodos() == null ? 0 : resp.getTodos().size();
+        log.info("同步拉取 结果=成功 用户ID={} 日记数量={} 账单数量={} 待办数量={}", userId, diaryCount, billCount, todoCount);
 
         return Result.success(resp);
     }
