@@ -16,6 +16,8 @@ import org.whu.timeflow.service.IDiaryService;
 import org.whu.timeflow.service.ITodoService;
 import org.whu.timeflow.utils.UserContext;
 
+import javax.swing.*;
+import java.math.BigDecimal; // ✅ 引入 BigDecimal
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,17 +41,29 @@ public class SyncController {
     public Result<Map<String, List<String>>> push(@RequestBody SyncDTO dto) {
         String userId = UserContext.getUserId(); // 从 Token 获取
         Map<String, List<String>> successIds = new HashMap<>();
+
         int diaryTotal = dto.getDiaries() == null ? 0 : dto.getDiaries().size();
         int billTotal = dto.getBills() == null ? 0 : dto.getBills().size();
         int todoTotal = dto.getTodos() == null ? 0 : dto.getTodos().size();
+
         log.info("同步推送 开始 用户ID={} 日记数量={} 账单数量={} 待办数量={}", userId, diaryTotal, billTotal, todoTotal);
+
+        long now = System.currentTimeMillis();
 
         // 1. 处理日记
         List<String> diaryIds = new ArrayList<>();
         if (dto.getDiaries() != null) {
             for (Diary d : dto.getDiaries()) {
-                d.setUserId(userId); // 强制绑定当前用户
-                // 尝试更新，如果不存在则插入 (SaveOrUpdate)
+                d.setUserId(userId);
+
+                // 🛡️ 兜底：如果时间为空，补全为当前时间
+                if (d.getCreateTime() == null) d.setCreateTime(now);
+                if (d.getUpdateTime() == null) d.setUpdateTime(now);
+
+                // 🛡️ 兜底：MyBatis-Plus 可能会忽略 null 字段，但数据库不能为 null
+                // 如果 deleted 为空，默认为 0
+                if (d.getIsDeleted() == null) d.setIsDeleted(0);
+
                 if (diaryService.saveOrUpdate(d)) {
                     diaryIds.add(d.getId());
                 }
@@ -63,6 +77,26 @@ public class SyncController {
         if (dto.getBills() != null) {
             for (Bill b : dto.getBills()) {
                 b.setUserId(userId);
+
+                // 🛡️ 兜底
+                if (b.getCreateTime() == null) b.setCreateTime(now);
+                if (b.getUpdateTime() == null) b.setUpdateTime(now);
+                if (b.getIsDeleted() == null) b.setIsDeleted(0);
+
+                // 🔥🔥🔥 新增修复：金额兜底 (适配 BigDecimal) 🔥🔥🔥
+                // 防止 amount 为 null 导致 SQL 报错
+                if (b.getAmount() == null) {
+                    b.setAmount(BigDecimal.ZERO);
+                }
+
+                // 防止 amount 过大 (数据库定义是 DECIMAL(10,2)，最大 99999999.99)
+                // 使用 BigDecimal 进行比较
+                BigDecimal maxAmount = new BigDecimal("99999999.99");
+                if (b.getAmount().compareTo(maxAmount) > 0) {
+                    log.warn("账单金额过大，已截断: ID={} Amount={}", b.getId(), b.getAmount());
+                    b.setAmount(maxAmount);
+                }
+
                 if (billService.saveOrUpdate(b)) {
                     billIds.add(b.getId());
                 }
@@ -76,6 +110,12 @@ public class SyncController {
         if (dto.getTodos() != null) {
             for (Todo t : dto.getTodos()) {
                 t.setUserId(userId);
+
+                // 🛡️ 兜底
+                if (t.getCreateTime() == null) t.setCreateTime(now);
+                if (t.getUpdateTime() == null) t.setUpdateTime(now);
+                if (t.getIsDeleted() == null) t.setIsDeleted(0);
+
                 if (todoService.saveOrUpdate(t)) {
                     todoIds.add(t.getId());
                 }
@@ -104,7 +144,7 @@ public class SyncController {
         // 查日记
         resp.setDiaries(diaryService.list(new LambdaQueryWrapper<Diary>()
                 .eq(Diary::getUserId, userId)
-                .gt(Diary::getUpdateTime, lastTime))); // update_time > lastTime
+                .gt(Diary::getUpdateTime, lastTime)));
 
         // 查账单
         resp.setBills(billService.list(new LambdaQueryWrapper<Bill>()

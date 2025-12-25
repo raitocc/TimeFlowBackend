@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: timeflow # 应用名称
+  jackson:
+    property-naming-strategy: SNAKE_CASE
 
   # === 数据库配置核心 ===
   datasource:
@@ -20,6 +22,7 @@ spring:
 #      path: /swagger-ui.html
 
 # === MyBatis-Plus 配置 (如果不想看 SQL 日志，把 log-impl 那行删掉) ===
-#mybatis-plus:
-#  configuration:
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true # 开启数据库下划线 -> Java驼峰的自动映射
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印 SQL，调试神器
