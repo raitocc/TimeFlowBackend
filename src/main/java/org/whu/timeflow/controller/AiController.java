@@ -24,7 +24,7 @@ public class AiController {
 
     // 💡 替换为你的 DeepSeek API Key
 //    @Value("${ai.deepseek.api-key:sk-xxxx}")
-    private final String apiKey = "sk-b7e0df0390d74ec69471cae3484a2ef8";
+    private final String apiKey = "sk-";
 
     private static final String DS_URL = "https://api.deepseek.com/chat/completions";
 
