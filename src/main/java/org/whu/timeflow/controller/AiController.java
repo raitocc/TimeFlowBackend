@@ -3,6 +3,8 @@ package org.whu.timeflow.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.whu.timeflow.common.Result;
@@ -17,6 +19,8 @@ import java.util.Map;
 @RequestMapping("/ai")
 @Tag(name = "AI 服务", description = "LLM 相关能力")
 public class AiController {
+
+    private static final Logger log = LoggerFactory.getLogger(AiController.class);
 
     // 💡 替换为你的 DeepSeek API Key
 //    @Value("${ai.deepseek.api-key:sk-xxxx}")
@@ -71,8 +75,10 @@ public class AiController {
     public Result<Map<String, Object>> billParse(@RequestBody Map<String, String> params) {
         String content = params.get("content");
         if (content == null || content.trim().isEmpty()) {
+            log.info("账单识别 结果=失败 原因=识别内容为空");
             return Result.error("识别内容不能为空");
         }
+        log.info("账单识别 开始 内容长度={}", content.length());
 
         try {
             RestTemplate restTemplate = new RestTemplate();
@@ -115,10 +121,13 @@ public class AiController {
                 ObjectMapper mapper = new ObjectMapper();
                 Map<String, Object> result = mapper.readValue(aiJsonText, Map.class);
 
+                log.info("账单识别 结果=成功 金额={} 类型={} 备注={}",
+                        result.get("amount"), result.get("type"), result.get("remark"));
                 return Result.success(result);
             }
+            log.warn("账单识别 结果=失败 原因=请求失败 状态码={}", response.getStatusCode());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("账单识别 结果=失败 原因=异常", e);
             return Result.error("AI 解析失败: " + e.getMessage());
         }
         return Result.error("请求失败");
